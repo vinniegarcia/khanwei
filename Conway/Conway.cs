@@ -1,62 +1,59 @@
-using System;
-using System.Collections.Generic;
+public record ConwayBoard(List<List<bool>> Board, Guid? Id);
 
 public class ConwaysGame
 {
-    private readonly Dictionary<Guid, bool[,]> boards = new();
+    public readonly Dictionary<Guid, ConwayBoard> games = new();
 
     // Req 1: Allows uploading a new board state.
     // Also saves board state.
     // Returns: ID of board
-    public Guid UploadBoard(bool[,] initialState)
+    public Guid InitializeBoard(bool[,] initialState)
     {
         Guid boardId = Guid.NewGuid();
-        boards[boardId] = (bool[,])initialState.Clone();
+        games[boardId] = new ConwayBoard(BoardSerializer.ToSerializableFormat((bool[,])initialState.Clone()), boardId);
         return boardId;
     }
 
+    public ConwayBoard GetBoard(Guid boardId)
+    {
+        if (!games.ContainsKey(boardId))
+            throw new Exception("Board not found.");
+        return games[boardId];
+    }
+}
+
+public class ConwaysGameMove
+{
     // Req 2: Get next state for a board.
     // Returns: next state
-    public bool[,] GetNextState(Guid boardId)
+    public static List<List<bool>> GetNextState(ConwayBoard b)
     {
-        if (!boards.ContainsKey(boardId))
-            throw new Exception("Board not found.");
-
-        var currentState = boards[boardId];
-        var nextState = Tick(currentState);
-        boards[boardId] = nextState;
-        return nextState;
+        return GetFutureState(b, 1);
     }
 
     // Method 3: Gets x number of states away for board
-    public bool[,] GetFutureState(Guid boardId, int steps)
+    public static List<List<bool>> GetFutureState(ConwayBoard b, int steps)
     {
-        if (!boards.ContainsKey(boardId))
-            throw new Exception("Board not found.");
-
-        var state = (bool[,])boards[boardId].Clone();
+        var state = BoardSerializer.FromSerializableFormat(b.Board);
         for (int i = 0; i < steps; i++)
             state = Tick(state);
 
-        return state;
+        return BoardSerializer.ToSerializableFormat(state);
     }
 
     // Method 4: Gets final state for board.
     // If not found after x attempts, returns an error
-    public bool[,] GetFinalState(Guid boardId, int maxAttempts)
+    public static List<List<bool>> GetFinalState(ConwayBoard b, int maxAttempts)
     {
-        if (!boards.ContainsKey(boardId))
-            throw new Exception("Board not found.");
-
         var previousStates = new HashSet<string>();
-        var state = (bool[,])boards[boardId].Clone();
+        var state = BoardSerializer.FromSerializableFormat(b.Board);
 
         for (int i = 0; i < maxAttempts; i++)
         {
             string stateHash = GetBoardHash(state);
 
             if (previousStates.Contains(stateHash))
-                return state; // Stable or oscillating state reached
+                return BoardSerializer.ToSerializableFormat(state); // Stable or oscillating state reached
 
             previousStates.Add(stateHash);
             state = Tick(state);
@@ -68,7 +65,7 @@ public class ConwaysGame
     // This is the "tick" that computes the next state,
     // setting the liveness of each cell.
     // Return: next state for that board.
-    private bool[,] Tick(bool[,] board)
+    private static bool[,] Tick(bool[,] board)
     {
         int rows = board.GetLength(0);
         int cols = board.GetLength(1);
@@ -99,7 +96,7 @@ public class ConwaysGame
     }
 
     // Collect surrounding neighbor cells to compute live count.
-    private int CountLiveNeighbors(bool[,] board, int row, int col)
+    private static int CountLiveNeighbors(bool[,] board, int row, int col)
     {
         int rows = board.GetLength(0);
         int cols = board.GetLength(1);
@@ -122,7 +119,7 @@ public class ConwaysGame
     }
 
     // Give each board a unique ID to find later.
-    private string GetBoardHash(bool[,] board)
+    private static string GetBoardHash(bool[,] board)
     {
         var hash = new System.Text.StringBuilder();
         int rows = board.GetLength(0);
@@ -136,4 +133,5 @@ public class ConwaysGame
 
         return hash.ToString();
     }
+
 }

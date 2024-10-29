@@ -1,4 +1,4 @@
-using System.Collections.Generic;
+using System.Text.Json;
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -6,6 +6,8 @@ var builder = WebApplication.CreateBuilder(args);
 // Learn more about configuring Swagger/OpenAPI at https://aka.ms/aspnetcore/swashbuckle
 builder.Services.AddEndpointsApiExplorer();
 builder.Services.AddSwaggerGen();
+
+builder.Services.AddSingleton<IConwayBoardService, ConwayBoardService>();
 
 var app = builder.Build();
 
@@ -20,40 +22,35 @@ app.UseHttpsRedirection();
 
 var game = new ConwaysGame();
 
-app.MapPost("/conway/board", (ConwayBoard b) => 
+app.MapPost("/conway/board", (ConwayBoard b, IConwayBoardService conwayBoardService) => 
 {
-    var boardId = game.UploadBoard(BoardSerializer.FromSerializableFormat(b.board));
-    return boardId;
+    return JsonSerializer.Serialize(conwayBoardService.CreateBoard(b));
 })
 .WithName("AddBoard")
 .WithOpenApi();
 
-app.MapGet("/conway/board/{boardId}/next", (Guid boardId) =>
+app.MapGet("/conway/board/{boardId}/next", (Guid boardId, IConwayBoardService conwayBoardService) =>
 {
-    var nextState = game.GetNextState(boardId);
-    return BoardSerializer.ToSerializableFormat(nextState);
+    var nextState = conwayBoardService.GetFutureState(boardId, 1);
+    return JsonSerializer.Serialize(nextState);
 })
 .WithName("GetNextBoardState")
 .WithOpenApi();
 
-app.MapGet("/conway/board/{boardId}/future/{ticks}", (Guid boardId, int ticks) =>
+app.MapGet("/conway/board/{boardId}/future/{ticks}", (Guid boardId, int ticks, IConwayBoardService conwayBoardService) =>
 {
-    var futureState = game.GetFutureState(boardId, ticks);
-    return BoardSerializer.ToSerializableFormat(futureState);
+    var futureState = conwayBoardService.GetFutureState(boardId, ticks);
+    return futureState;
 })
 .WithName("GetFutureBoardState")
 .WithOpenApi();
 
-app.MapGet("/conway/board/{boardId}/final/{maxAttempts}", (Guid boardId, int maxAttempts = 10) =>
+app.MapGet("/conway/board/{boardId}/final/{maxAttempts}", (Guid boardId, int maxAttempts, IConwayBoardService conwayBoardService) =>
 {
-    var finalState = game.GetFinalState(boardId, maxAttempts);
-    return BoardSerializer.ToSerializableFormat(finalState);
+    var finalState = conwayBoardService.GetFinalState(boardId, maxAttempts);
+    return finalState;
 })
 .WithName("GetFinalBoardState")
 .WithOpenApi();
 
 app.Run();
-
-public record ConwayBoard {  
-    public List<List<bool>> board { get; set; }
-}
