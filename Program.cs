@@ -24,7 +24,7 @@ var game = new ConwaysGame();
 
 app.MapPost("/conway/board", (ConwayBoard b, IConwayBoardService conwayBoardService) => 
 {
-    return JsonSerializer.Serialize(conwayBoardService.CreateBoard(b));
+    return conwayBoardService.CreateBoard(b);
 })
 .WithName("AddBoard")
 .WithOpenApi();
@@ -32,7 +32,7 @@ app.MapPost("/conway/board", (ConwayBoard b, IConwayBoardService conwayBoardServ
 app.MapGet("/conway/board/{boardId}/next", (Guid boardId, IConwayBoardService conwayBoardService) =>
 {
     var nextState = conwayBoardService.GetFutureState(boardId, 1);
-    return JsonSerializer.Serialize(nextState);
+    return nextState;
 })
 .WithName("GetNextBoardState")
 .WithOpenApi();
