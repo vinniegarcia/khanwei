@@ -13,6 +13,14 @@ Conway's Game of Life api in C#
 ## Compiling
 1. `dotnet build`
 
+## Endpoints:
+1. `GET /conway/boards`: List all boards in the database. Gets all records, no paging/filtering.
+2. `POST /conway/board`: Create a new board game.
+3. `GET /conway/board/{boardId}`: Show a single board game configuration.
+4. `GET /conway/board/{boardId}/next`: Show the board game's next state.
+5. `GET /conway/board/{boardId}/future/{steps}`: Show the board game's state after the specified number of ticks.
+6. `GET /conway/board/{boardId}/final/{maxAttempts}`: Show the final board game state, if computable within the number of attempts given. If not, throw an exception.
+
 ## Decisions Made:
 1. *Persistenace:* I went with SQLite for ease of setup. Yes this scales to just one machine. I could have gone with a distributed cache like Redis but that would add another layer of complexity and overhead, and I didn't think setting up a whole docker compose stack was worth it for an interview takehome exercise.
 2. *ORM:* I could have used Entity Framework or Dapper, but it's SQLite and 2 SQL queries and nobody should be afraid to write some SQL :). 
@@ -20,7 +28,7 @@ Conway's Game of Life api in C#
 4. *Immutability:* I went with an "insert-once" approach here to save only initial board state, and any requests for future states are computed on demand. We can probably optimize this by caching/storing results of the calculations, but we don't need to scale that right now, extra compute usage is just fine.
 5. *Idempotence:* Sending the same board config more than once for insert will not create duplicate records. It will just return the one existing in the DB. Check the returned guids to verify.
 6. *Testing:* I used xunit, it was easy enough to get working. I wrote tests for the `BoardSerializer`, `ConwaysGameMove`, and `ConwayBoardService` classes. 
-7. *Architecture:* I may not be following all the current best practices in .NET land, it's been about a decade since I did serious C# work and that's back when MVC was the new hotness. I used the minimal API, but that just means I ended up frankensteining my own framework. It's the Django/Flask dichotomy for C#. I injected a singleton service, but I could probably have done the `ConwayDatabase` -> `ConwayBoardService` linkage in a more idiomatic .NET way.
+7. *Architecture:* I may not be following all the current best practices in .NET land, it's been about a decade since I did serious C# work and that's back when MVC was the new hotness. I used the minimal API, but that just means I ended up frankensteining my own framework. It's the Django/Flask dichotomy for C#. I injected a singleton service, but I could probably have done the `ConwayDatabase` -> `ConwayBoardService` linkage in a more idiomatic .NET way. I also stuck to the HTTP verb rest conventions, but I could have done more with returning HTTP statuses that correspond, like 404 for when a board can't be found.
 
 ## Overall:
 This took longer than expected, but I wanted to do a good job, and I had to do some catching up to get back into .NET. My day-to-day is TypeScript and Python, so C# felt familiar, but C# likes to pull in the OOP direction where I tend to go more functional (see the ConwaysGameMove class for me shoehorning the functional-programming "functions that operate on data structures" model into a class with a bunch of static methods so I can call them like loose functions). 
