@@ -452,3 +452,12 @@ $RECYCLE.BIN/
 !.vscode/tasks.json
 !.vscode/launch.json
 !.vscode/extensions.json
+
+conway.db
+
+*.suo
+*.user
+_ReSharper.*
+bin
+obj
+packages

@@ -1,35 +1,44 @@
-public interface IConwayBoardService {
-    Dictionary<Guid, ConwayBoard> GetBoards();
-    ConwayBoard GetBoard(Guid id);
-    ConwayBoard CreateBoard(ConwayBoard b);
+using System.Text.Json;
 
-    List<List<bool>> GetFutureState(Guid id, int steps);
-    List<List<bool>> GetFinalState(Guid id, int maxAttempts);
+public interface IConwayBoardService {
+    Task<List<ConwayBoard>> GetBoards();
+    Task<ConwayBoard> GetBoard(Guid id);
+    Task<ConwayBoard> CreateBoard(ConwayBoard b);
+
+    Task<List<List<bool>>> GetFutureState(Guid id, int steps);
+    Task<List<List<bool>>> GetFinalState(Guid id, int maxAttempts);
 }
 
 public class ConwayBoardService: IConwayBoardService {
-    private readonly ConwaysGame _game = new();
+    private ConwayDatabase _db;
+
+    public ConwayBoardService(string connectionString)
+    {
+        _db = new ConwayDatabase(connectionString);
+    }
     
-    public Dictionary<Guid, ConwayBoard> GetBoards() {
-        return _game.games;
+    public async Task<List<ConwayBoard>> GetBoards() 
+    {
+        return await _db.SelectAll();
     }
 
-    public ConwayBoard CreateBoard(ConwayBoard b) {
-        var boardId = _game.InitializeBoard(BoardSerializer.FromSerializableFormat(b.Board));
-        return GetBoard(boardId);
+    public async Task<ConwayBoard> CreateBoard(ConwayBoard b) {
+        bool[,] values = BoardSerializer.FromSerializableFormat(b.Board);
+        var boardId = await _db.Insert(values);
+        return await GetBoard(boardId);
     }
 
-    public ConwayBoard GetBoard(Guid id) {
-        return _game.GetBoard(id);
+    public Task<ConwayBoard> GetBoard(Guid id) {
+        return _db.Select(id);
     }
 
-    public List<List<bool>> GetFutureState(Guid id, int steps = 1) {
-        var board = _game.GetBoard(id);
+    public async Task<List<List<bool>>> GetFutureState(Guid id, int steps = 1) {
+        var board = await this.GetBoard(id);
         return ConwaysGameMove.GetFutureState(board, steps);
     }
 
-    public List<List<bool>> GetFinalState(Guid id, int maxAttempts = 100) {
-        var board = _game.GetBoard(id);
+    public async Task<List<List<bool>>> GetFinalState(Guid id, int maxAttempts = 100) {
+        var board = await this.GetBoard(id);
         return ConwaysGameMove.GetFinalState(board, maxAttempts);
     }
 

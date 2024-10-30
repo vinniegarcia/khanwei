@@ -1,27 +1,5 @@
 public record ConwayBoard(List<List<bool>> Board, Guid? Id);
 
-public class ConwaysGame
-{
-    public readonly Dictionary<Guid, ConwayBoard> games = new();
-
-    // Req 1: Allows uploading a new board state.
-    // Also saves board state.
-    // Returns: ID of board
-    public Guid InitializeBoard(bool[,] initialState)
-    {
-        Guid boardId = Guid.NewGuid();
-        games[boardId] = new ConwayBoard(BoardSerializer.ToSerializableFormat((bool[,])initialState.Clone()), boardId);
-        return boardId;
-    }
-
-    public ConwayBoard GetBoard(Guid boardId)
-    {
-        if (!games.ContainsKey(boardId))
-            throw new Exception("Board not found.");
-        return games[boardId];
-    }
-}
-
 public class ConwaysGameMove
 {
     // Req 2: Get next state for a board.

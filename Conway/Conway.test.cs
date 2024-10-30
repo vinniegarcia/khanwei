@@ -2,49 +2,6 @@ using System;
 using System.Collections.Generic;
 using Xunit;
 
-public class ConwayGameTests
-{
-    private readonly ConwaysGame _game;
-
-    public ConwayGameTests()
-    {
-        _game = new ConwaysGame();
-    }
-
-    [Fact]
-    public void InitializeBoard_ShouldReturnUniqueId()
-    {
-        bool[,] initialState = {
-            { true, false },
-            { false, true }
-        };
-
-        Guid boardId = _game.InitializeBoard(initialState);
-        Assert.NotEqual(Guid.Empty, boardId);
-    }
-
-    [Fact]
-    public void GetBoard_ShouldReturnCorrectBoard()
-    {
-        bool[,] initialState = {
-            { true, false },
-            { false, true }
-        };
-
-        Guid boardId = _game.InitializeBoard(initialState);
-        var board = _game.GetBoard(boardId);
-
-        Assert.Equal(boardId, board.Id);
-        Assert.Equal(BoardSerializer.ToSerializableFormat(initialState), board.Board);
-    }
-
-    [Fact]
-    public void GetBoard_ShouldThrowException_ForInvalidId()
-    {
-        Guid invalidId = Guid.NewGuid();
-        Assert.Throws<Exception>(() => _game.GetBoard(invalidId));
-    }
-}
 public class ConwaysGameMoveTests
 {
     [Fact]
