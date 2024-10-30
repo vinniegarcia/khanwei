@@ -72,7 +72,7 @@ class ConwayDatabase
             var board = (string)await command.ExecuteScalarAsync();
             if (board != null)
             {
-                return new ConwayBoard(JsonSerializer.Deserialize<List<List<bool>>>(board), id);
+                return BuildConwayBoard(board, id);
             }
             throw new Exception("No board found for the given ID");
         }

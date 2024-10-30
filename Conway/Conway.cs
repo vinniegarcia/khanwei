@@ -9,7 +9,7 @@ public class ConwaysGameMove
         return GetFutureState(b, 1);
     }
 
-    // Method 3: Gets x number of states away for board
+    // Req 3: Gets x number of states away for board
     public static List<List<bool>> GetFutureState(ConwayBoard b, int steps)
     {
         var state = BoardSerializer.FromSerializableFormat(b.Board);
@@ -19,7 +19,7 @@ public class ConwaysGameMove
         return BoardSerializer.ToSerializableFormat(state);
     }
 
-    // Method 4: Gets final state for board.
+    // Req 4: Gets final state for board.
     // If not found after x attempts, returns an error
     public static List<List<bool>> GetFinalState(ConwayBoard b, int maxAttempts)
     {
