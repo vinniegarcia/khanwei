@@ -22,7 +22,7 @@ Conway's Game of Life api in C#
 6. `GET /conway/board/{boardId}/final/{maxAttempts}`: Show the final board game state, if computable within the number of attempts given. If not, throw an exception.
 
 ## Decisions Made:
-1. *Persistenace:* I went with SQLite for ease of setup. Yes this scales to just one machine. I could have gone with a distributed cache like Redis but that would add another layer of complexity and overhead, and I didn't think setting up a whole docker compose stack was worth it for an interview takehome exercise.
+1. *Persistence:* I went with SQLite for ease of setup. Yes this scales to just one machine. I could have gone with a distributed cache like Redis but that would add another layer of complexity and overhead, and I didn't think setting up a whole docker compose stack was worth it for an interview takehome exercise.
 2. *ORM:* I could have used Entity Framework or Dapper, but it's SQLite and 2 SQL queries and nobody should be afraid to write some SQL :). 
 3. *Serialization:* I used a 2D array of booleans for the game state, but there was a lot of serialization both into SQLite (because SQLite doesn't really have a JSON datatype so it's serialized to a string), and out into the HTTP response (where .NET wanted `List<List<bool>>` instead of `bool[,]`). There's probably a better way to do this than I did, but my C# and ASP.NET is rusty.
 4. *Immutability:* I went with an "insert-once" approach here to save only initial board state, and any requests for future states are computed on demand. We can probably optimize this by caching/storing results of the calculations, but we don't need to scale that right now, extra compute usage is just fine.
